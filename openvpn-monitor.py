@@ -21,7 +21,7 @@ try:
 except ImportError:
     from ipaddress import ip_address, IPv6Address
 
-
+import json
 import socket
 import re
 import argparse
@@ -768,6 +768,29 @@ else:
         images_dir = 'images'
 
     application = default_app()
+
+
+    @get('/api')
+    def api_test():
+        cfg = ConfigLoader(args.config)
+        monitor = OpenvpnMgmtInterface(cfg)
+        return pformat((dict(monitor.vpns)))
+
+
+    @get('/list')
+    def get_list():
+        cfg = ConfigLoader(args.config)
+        monitor = OpenvpnMgmtInterface(cfg)
+        vpn = dict(monitor.vpns['VPN']['sessions'])
+        ret = []
+        for key in vpn:
+            data = {}
+            data['ip'] = key
+            data['username'] = vpn[key]['username']
+            ret.append(data)
+        response.content_type = 'text/json;'
+        return json.dumps(ret)
+
 
     @get('/')
     def get_slash():
